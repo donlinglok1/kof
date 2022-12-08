@@ -1,0 +1,4357 @@
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大乱斗</title>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+</head>
+
+<div id="container">
+  <div id="kof"></div>
+</div>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    /* 禁用 鼠标选中文本 */
+    moz-user-select: -moz-none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  #container {
+    width: 1280px;
+    margin: 0 auto;
+    color: #fff;
+  }
+
+  #kof > #start-menu {
+    width: 1280px;
+    height: 720px;
+    background-image: url("background/5.gif");
+    background-size: 100% 100%;
+    background-position: top;
+    position: absolute;
+  }
+
+  /*游戏标题*/
+  #kof > #start-menu > h1 {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 60px;
+    color: #f5f7a7;
+  }
+
+  #kof > #start-menu > #menu {
+    width: 350px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  #menu > button {
+    width: 300px;
+    height: 60px;
+    background-color: #4f78cc;
+    border-radius: 20px;
+    color: #f5f7a7;
+    border: solid;
+    margin: 20px 0;
+  }
+
+  #menu > button:hover {
+    background-color: #0e42a9;
+  }
+
+  #kof > #start-menu > #player0-img {
+    box-sizing: border-box;
+    height: 200px;
+    width: 200px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    border: 4mm ridge rgba(211, 220, 50, 0.6);
+    border-radius: 0 20px 20px 20px;
+  }
+
+  #kof > #start-menu > #player1-img {
+    box-sizing: border-box;
+    height: 200px;
+    width: 200px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border: 4mm ridge rgba(211, 220, 50, 0.6);
+    border-radius: 20px 0 20px 20px;
+  }
+
+  #kof > #intro {
+    box-sizing: border-box;
+    position: relative;
+    top: 5px;
+    margin: 0 auto;
+    background-color: #4f78cc;
+    width: 600px;
+    height: 710px;
+    border: thick double #f5f7a7;
+    border-radius: 30px;
+    text-align: center;
+    /* padding:40px; */
+    color: #fff;
+    overflow: scroll;
+    line-height: 2.5;
+  }
+
+  #kof > #intro > button {
+    position: absolute;
+    right: 10px;
+    top: 0px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800px;
+    font-size: 50px;
+    color: #f5f7a7;
+    background-color: transparent;
+  }
+
+  #kof > #intro > p {
+    font-size: 20px;
+  }
+
+  /*结束菜单*/
+  #kof > #overMenu {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #4f78cc;
+    width: 250px;
+    height: 200px;
+    border: solid;
+    border-radius: 20px;
+    padding: 40px;
+    color: #fff;
+  }
+
+  #kof > #overMenu > h2 {
+    text-align: center;
+    font-size: 40px;
+    color: #4f78cc;
+  }
+
+  /*结束菜单按钮*/
+  #kof > #overMenu > button {
+    color: white;
+    background-color: #cca700;
+    width: 250px;
+    height: 50px;
+    border-radius: 20px;
+    margin: 90px 0 0 0;
+    border: none;
+  }
+
+  #kof > #overMenu > button:hover {
+    background-color: #eec40a;
+    transition: 100ms;
+  }
+</style>
+
+<script type="module">
+  export const GRAVITY = 5000; //重力加速度
+  export const GROUND_HEIGHT = 50; //地面高度
+  export class KOF {
+    constructor(id) {
+      this.$kof = $("#" + id);
+      this.bgId = 5; //背景图片Id
+      this.player0Id = 5; //玩家0的角色Id
+      this.player1Id = 4; //晚间1的角色Id
+      this.gameResult = "平局"; //游戏结果
+      this.id = id;
+      this.gameStatus = "end";
+      this.menu = new Menu(this);
+    }
+
+    startGame() {
+      this.gameMap = new GameMap(this);
+      this.controller = new Controller(this.gameMap.$canvas);
+
+      let player0, player1;
+      switch (this.player0Id) {
+        case 0:
+          player0 = new Karakuri(this, { id: 0, x: 200, y: 0 });
+          break;
+        case 1:
+          player0 = new Tsunade(this, { id: 0, x: 200, y: 0 });
+          break;
+        case 2:
+          player0 = new Ryo(this, { id: 0, x: 200, y: 0 });
+          break;
+        case 3:
+          player0 = new ZhuGeliang(this, { id: 0, x: 200, y: 0 });
+          break;
+        case 4:
+          player0 = new RedRobot(this, { id: 0, x: 200, y: 0 });
+          break;
+        case 5:
+          player0 = new Yuri(this, { id: 0, x: 200, y: 0 });
+          break;
+      }
+      switch (this.player1Id) {
+        case 0:
+          player1 = new Karakuri(this, { id: 1, x: 960, y: 0 });
+          break;
+        case 1:
+          player1 = new Tsunade(this, { id: 1, x: 960, y: 0 });
+          break;
+        case 2:
+          player1 = new Ryo(this, { id: 1, x: 960, y: 0 });
+          break;
+        case 3:
+          player1 = new ZhuGeliang(this, { id: 1, x: 960, y: 0 });
+          break;
+        case 4:
+          player1 = new RedRobot(this, { id: 1, x: 960, y: 0 });
+          break;
+        case 5:
+          player1 = new Yuri(this, { id: 1, x: 960, y: 0 });
+          break;
+      }
+      this.players = [player0, player1];
+      this.gameStatus = "started";
+    }
+
+    endGame() {
+      this.gameStatus = "end";
+      if (this.players[0].hp > this.players[1].hp) {
+        this.gameResult = "左边获胜";
+      } else if (this.players[0].hp === this.players[1].hp) {
+        this.gameResult = "平局";
+      } else {
+        this.gameResult = "右边获胜";
+      }
+      this.menu.endGame();
+    }
+  }
+
+  let GAME_OBJECTS = [];
+
+  class GameObject {
+    constructor() {
+      GAME_OBJECTS.push(this);
+      this.timedelta = 0;
+      this.hasCallStart = false;
+    }
+    start() {}
+
+    update() {}
+    destroy() {
+      for (let i in GAME_OBJECTS) {
+        if (GAME_OBJECTS[i] === this) {
+          GAME_OBJECTS.splice[(i, 1)];
+          break;
+        }
+      }
+    }
+  }
+  let lastTimestamp = 0;
+  let gameObjectsFrame = (timestamp) => {
+    for (let obj of GAME_OBJECTS) {
+      if (!obj.hasCallStart) {
+        obj.start();
+        obj.hasCallStart = true;
+      } else {
+        obj.timedelta = timestamp - lastTimestamp;
+        obj.update();
+      }
+    }
+    lastTimestamp = timestamp;
+    requestAnimationFrame(gameObjectsFrame);
+  };
+  requestAnimationFrame(gameObjectsFrame);
+
+  let clearGameObjects = () => {
+    GAME_OBJECTS = [];
+  };
+
+  class Menu {
+    constructor(root) {
+      this.root = root;
+      this.addStartMenu();
+      this.addIntroPage();
+      this.addOverMenu();
+    }
+
+    addStartMenu() {
+      //开始菜单页
+      this.startMenu = $(`
+         <div id="start-menu">
+             <h1>大乱斗</h1>
+             <!-- 角色头像 --> 
+             <img src="allPlayers/${this.root.player0Id}.png" id="player0-img" alt="角色0图片">
+             <img src="allPlayers/${this.root.player1Id}.png" id="player1-img" alt="角色1图片">
+             <!-- 选择按钮 --> 
+             <div id='menu'>
+                 <button id="select-background-btn">切换背景</button>
+                 <button id="intro-btn">游戏介绍</button>
+                 <button id ="start-btn">开始游戏</button>
+             </div>
+         </div>`);
+
+      this.root.$kof.append(this.startMenu);
+      this.startMenu.show();
+
+      let outer = this;
+      // 游戏介绍按钮
+      this.startMenu.find("#intro-btn").click(function () {
+        outer.intro.show();
+      });
+
+      // 开始游戏按钮
+      this.startMenu.find("#start-btn").click(function () {
+        $("#start-menu #menu").hide();
+        outer.root.startGame();
+        outer.startMenu.fadeOut(1000);
+      });
+
+      //切换背景
+      this.startMenu.find("#select-background-btn").click(function () {
+        outer.root.bgId = (outer.root.bgId + 1) % 5;
+        $("#start-menu").css({
+          "background-image": `url("background/${outer.root.bgId}.gif")`,
+        });
+      });
+
+      //点击图片切换角色
+      this.startMenu.find("#player0-img").click(function () {
+        outer.root.player0Id = (outer.root.player0Id + 1) % 6;
+        $("#start-menu #player0-img").attr(
+          "src",
+          `allPlayers/${outer.root.player0Id}.png`
+        );
+      });
+      //点击图片切换角色
+      this.startMenu.find("#player1-img").click(function () {
+        outer.root.player1Id = (outer.root.player1Id + 1) % 6;
+        $("#start-menu #player1-img").attr(
+          "src",
+          `allPlayers/${outer.root.player1Id}.png`
+        );
+      });
+    }
+
+    addIntroPage() {
+      //介绍页面
+      this.intro = $(` 
+         <!-- 游戏介绍 -->
+         <div id="intro">
+             <h2>游戏介绍</h2>
+             <p>
+                 经典的双人对战街机游戏<br>
+                 点击角色图片可切换角色<br>
+                 <br>
+                 玩家操作键： <br>
+                 跳跃：↑(w) <br>
+                 下蹲：↓(s) <br>
+                 左移：←(a) <br>
+                 右移：→(d) <br>
+                 攻击: 空格(回车) <br>
+                 防守: f(Shift) <br>
+                 <br>
+             </p>
+             <button>×</button>
+         </div>`);
+
+      this.root.$kof.append(this.intro);
+      this.intro.hide();
+
+      let outer = this;
+      //关闭游戏介绍页面按钮
+      this.intro.find("button").click(function () {
+        outer.intro.hide();
+        outer.startMenu.show();
+      });
+    }
+
+    addOverMenu() {
+      //结束游戏界面
+      this.overMenu = $(`
+        <!-- 结束菜单 -->
+        <div id="overMenu">
+            <h2>玩家左获胜</h2>
+            <button class="back">返 回</button>
+        </div>
+        `);
+      this.root.$kof.append(this.overMenu);
+      this.overMenu.hide();
+
+      let outer = this;
+      this.overMenu.find("button").click(function () {
+        outer.overMenu.hide();
+        outer.startMenu.show();
+        $("#start-menu #menu").show();
+        $(`#${outer.root.id} .kof-head`).remove();
+        $(`#${outer.root.id} canvas`).remove();
+        clearGameObjects();
+      });
+    }
+
+    endGame() {
+      $(`#${this.root.id} #overMenu h2`).text(this.root.gameResult);
+      $(`#${this.root.id} #overMenu`).show();
+    }
+  }
+
+  class GameMap extends GameObject {
+    constructor(root) {
+      super();
+
+      this.root = root;
+
+      //加入画布
+      this.$canvas = $(
+        `<canvas  width="1280" height="720" tabindex=0 ></canvas>`
+      );
+      this.ctx = this.$canvas[0].getContext("2d");
+      this.root.$kof.append(this.$canvas);
+      this.$canvas.focus();
+
+      this.timeLeft = 60000;
+
+      //加入计时器和血条
+      this.root.$kof.append(
+        $(`
+        <div class="kof-head">
+                <div class="kof-head-hp-0">
+                    <div>
+                        <div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="kof-head-timer">60</div>
+                <div class="kof-head-hp-1">
+                    <div>
+                        <div>
+                        </div>
+                    </div>
+                </div>
+        </div>`)
+      );
+
+      this.$timer = this.root.$kof.find(".kof-head-timer");
+    }
+
+    start() {
+      $(this.root.$kof).css({
+        "background-image": `url(background/${this.root.bgId}.gif)`,
+        "background-size": "100% 100%",
+        "background-position": "top",
+        position: "absolute",
+      });
+
+      $(".kof-head").css({
+        width: "100%",
+        height: "80px",
+        position: "absolute",
+        top: "0",
+        display: "flex",
+        "align-items": "center",
+      });
+
+      $(".kof-head-hp-0").css({
+        width: "calc(50% - 60px)",
+        height: "40px",
+        "margin-left": "20px",
+        border: "white 5px solid",
+        "border-right": "none",
+        "box-sizing": "border-box",
+      });
+
+      $(".kof-head-timer").css({
+        height: "60px",
+        width: "80px",
+        "background-color": "orange",
+        border: "white 5px solid",
+        "box-sizing": "border-box",
+        color: "white",
+        "font-size": "30px",
+        "font-weight": "800",
+        "text-align": "center",
+        "line-height": "50px",
+        "user-select": "none",
+      });
+
+      $(".kof-head-hp-1").css({
+        height: "40px",
+        width: "calc(50% - 60px)",
+        "margin-right": "20px",
+        border: "white 5px solid",
+        "box-sizing": "border-box",
+        "border-left": "none",
+      });
+
+      $(`.kof-head-hp-0>div`).css({
+        "background-color": "red",
+        height: "100%",
+        width: "100%",
+        float: "right",
+      });
+
+      $(`.kof-head-hp-1>div`).css({
+        "background-color": "red",
+        height: "100%",
+        width: "100%",
+      });
+
+      $(`.kof-head-hp-0>div>div`).css({
+        "background-color": "lightgreen",
+        height: "100%",
+        width: "100%",
+        float: "right",
+      });
+
+      $(`.kof-head-hp-1>div>div`).css({
+        "background-color": "lightgreen",
+        height: "100%",
+        width: "100%",
+      });
+    }
+    update() {
+      if (this.root.gameStatus !== "started") {
+        return;
+      }
+      this.timeLeft -= this.timedelta;
+      if (this.timeLeft < 0) {
+        this.timeLeft = 0;
+        let [a, b] = this.root.players;
+        if (a.status !== "die" && b.status !== "die") {
+          if (a.hp > b.hp) {
+            b.die();
+          } else if (a.hp === b.hp) {
+            this.root.endGame();
+          } else {
+            a.die();
+          }
+        }
+      }
+      this.$timer.text(parseInt(this.timeLeft / 1000));
+      this.render();
+    }
+
+    render() {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+  }
+
+  //借用第三方函数加载GIF动画
+  //来源 https://stackoverflow.com/questions/48234696/how-to-put-a-gif-with-canvas
+
+  const GIF = function () {
+    // **NOT** for commercial use.
+    var timerID; // timer handle for set time out usage
+    var st; // holds the stream object when loading.
+    var interlaceOffsets = [0, 4, 2, 1]; // used in de-interlacing.
+    var interlaceSteps = [8, 8, 4, 2];
+    var interlacedBufSize; // this holds a buffer to de interlace. Created on the first frame and when size changed
+    var deinterlaceBuf;
+    var pixelBufSize; // this holds a buffer for pixels. Created on the first frame and when size changed
+    var pixelBuf;
+    const GIF_FILE = {
+      // gif file data headers
+      GCExt: 0xf9,
+      COMMENT: 0xfe,
+      APPExt: 0xff,
+      UNKNOWN: 0x01, // not sure what this is but need to skip it in parser
+      IMAGE: 0x2c,
+      EOF: 59, // This is entered as decimal
+      EXT: 0x21,
+    };
+    // simple buffered stream used to read from the file
+    var Stream = function (data) {
+      this.data = new Uint8ClampedArray(data);
+      this.pos = 0;
+      var len = this.data.length;
+      this.getString = function (count) {
+        // returns a string from current pos of len count
+        var s = "";
+        while (count--) {
+          s += String.fromCharCode(this.data[this.pos++]);
+        }
+        return s;
+      };
+      this.readSubBlocks = function () {
+        // reads a set of blocks as a string
+        var size,
+          count,
+          data = "";
+        do {
+          count = size = this.data[this.pos++];
+          while (count--) {
+            data += String.fromCharCode(this.data[this.pos++]);
+          }
+        } while (size !== 0 && this.pos < len);
+        return data;
+      };
+      this.readSubBlocksB = function () {
+        // reads a set of blocks as binary
+        var size,
+          count,
+          data = [];
+        do {
+          count = size = this.data[this.pos++];
+          while (count--) {
+            data.push(this.data[this.pos++]);
+          }
+        } while (size !== 0 && this.pos < len);
+        return data;
+      };
+    };
+    // LZW decoder uncompressed each frames pixels
+    // this needs to be optimised.
+    // minSize is the min dictionary as powers of two
+    // size and data is the compressed pixels
+    function lzwDecode(minSize, data) {
+      var i, pixelPos, pos, clear, eod, size, done, dic, code, last, d, len;
+      pos = pixelPos = 0;
+      dic = [];
+      clear = 1 << minSize;
+      eod = clear + 1;
+      size = minSize + 1;
+      done = false;
+      while (!done) {
+        // JavaScript optimisers like a clear exit though I never use 'done' apart from fooling the optimiser
+        last = code;
+        code = 0;
+        for (i = 0; i < size; i++) {
+          if (data[pos >> 3] & (1 << (pos & 7))) {
+            code |= 1 << i;
+          }
+          pos++;
+        }
+        if (code === clear) {
+          // clear and reset the dictionary
+          dic = [];
+          size = minSize + 1;
+          for (i = 0; i < clear; i++) {
+            dic[i] = [i];
+          }
+          dic[clear] = [];
+          dic[eod] = null;
+        } else {
+          if (code === eod) {
+            done = true;
+            return;
+          }
+          if (code >= dic.length) {
+            dic.push(dic[last].concat(dic[last][0]));
+          } else if (last !== clear) {
+            dic.push(dic[last].concat(dic[code][0]));
+          }
+          d = dic[code];
+          len = d.length;
+          for (i = 0; i < len; i++) {
+            pixelBuf[pixelPos++] = d[i];
+          }
+          if (dic.length === 1 << size && size < 12) {
+            size++;
+          }
+        }
+      }
+    }
+    function parseColourTable(count) {
+      // get a colour table of length count  Each entry is 3 bytes, for RGB.
+      var colours = [];
+      for (var i = 0; i < count; i++) {
+        colours.push([st.data[st.pos++], st.data[st.pos++], st.data[st.pos++]]);
+      }
+      return colours;
+    }
+    function parse() {
+      // read the header. This is the starting point of the decode and async calls parseBlock
+      var bitField;
+      st.pos += 6;
+      gif.width = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      gif.height = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      bitField = st.data[st.pos++];
+      gif.colorRes = (bitField & 0b1110000) >> 4;
+      gif.globalColourCount = 1 << ((bitField & 0b111) + 1);
+      gif.bgColourIndex = st.data[st.pos++];
+      st.pos++; // ignoring pixel aspect ratio. if not 0, aspectRatio = (pixelAspectRatio + 15) / 64
+      if (bitField & 0b10000000) {
+        gif.globalColourTable = parseColourTable(gif.globalColourCount);
+      } // global colour flag
+      setTimeout(parseBlock, 0);
+    }
+    function parseAppExt() {
+      // get application specific data. Netscape added iterations and terminator. Ignoring that
+      st.pos += 1;
+      if ("NETSCAPE" === st.getString(8)) {
+        st.pos += 8;
+      } // ignoring this data. iterations (word) and terminator (byte)
+      else {
+        st.pos += 3; // 3 bytes of string usually "2.0" when identifier is NETSCAPE
+        st.readSubBlocks(); // unknown app extension
+      }
+    }
+    function parseGCExt() {
+      // get GC data
+      var bitField;
+      st.pos++;
+      bitField = st.data[st.pos++];
+      gif.disposalMethod = (bitField & 0b11100) >> 2;
+      gif.transparencyGiven = bitField & 0b1 ? true : false; // ignoring bit two that is marked as  userInput???
+      gif.delayTime = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      gif.transparencyIndex = st.data[st.pos++];
+      st.pos++;
+    }
+    function parseImg() {
+      // decodes image data to create the indexed pixel image
+      var deinterlace, frame, bitField;
+      deinterlace = function (width) {
+        // de interlace pixel data if needed
+        var lines, fromLine, pass, toline;
+        lines = pixelBufSize / width;
+        fromLine = 0;
+        if (interlacedBufSize !== pixelBufSize) {
+          // create the buffer if size changed or undefined.
+          deinterlaceBuf = new Uint8Array(pixelBufSize);
+          interlacedBufSize = pixelBufSize;
+        }
+        for (pass = 0; pass < 4; pass++) {
+          for (
+            toLine = interlaceOffsets[pass];
+            toLine < lines;
+            toLine += interlaceSteps[pass]
+          ) {
+            deinterlaceBuf.set(
+              pixelBuf.subarray(fromLine, fromLine + width),
+              toLine * width
+            );
+            fromLine += width;
+          }
+        }
+      };
+      frame = {};
+      gif.frames.push(frame);
+      frame.disposalMethod = gif.disposalMethod;
+      frame.time = gif.length;
+      frame.delay = gif.delayTime * 10;
+      gif.length += frame.delay;
+      if (gif.transparencyGiven) {
+        frame.transparencyIndex = gif.transparencyIndex;
+      } else {
+        frame.transparencyIndex = undefined;
+      }
+      frame.leftPos = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      frame.topPos = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      frame.width = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      frame.height = st.data[st.pos++] + (st.data[st.pos++] << 8);
+      bitField = st.data[st.pos++];
+      frame.localColourTableFlag = bitField & 0b10000000 ? true : false;
+      if (frame.localColourTableFlag) {
+        frame.localColourTable = parseColourTable(
+          1 << ((bitField & 0b111) + 1)
+        );
+      }
+      if (pixelBufSize !== frame.width * frame.height) {
+        // create a pixel buffer if not yet created or if current frame size is different from previous
+        pixelBuf = new Uint8Array(frame.width * frame.height);
+        pixelBufSize = frame.width * frame.height;
+      }
+      lzwDecode(st.data[st.pos++], st.readSubBlocksB()); // decode the pixels
+      if (bitField & 0b1000000) {
+        // de interlace if needed
+        frame.interlaced = true;
+        deinterlace(frame.width);
+      } else {
+        frame.interlaced = false;
+      }
+      processFrame(frame); // convert to canvas image
+    }
+    function processFrame(frame) {
+      // creates a RGBA canvas image from the indexed pixel data.
+      var ct, cData, dat, pixCount, ind, useT, i, pixel, pDat, col, frame, ti;
+      frame.image = document.createElement("canvas");
+      frame.image.width = gif.width;
+      frame.image.height = gif.height;
+      frame.image.ctx = frame.image.getContext("2d");
+      ct = frame.localColourTableFlag
+        ? frame.localColourTable
+        : gif.globalColourTable;
+      if (gif.lastFrame === null) {
+        gif.lastFrame = frame;
+      }
+      useT =
+        gif.lastFrame.disposalMethod === 2 || gif.lastFrame.disposalMethod === 3
+          ? true
+          : false;
+      if (!useT) {
+        frame.image.ctx.drawImage(
+          gif.lastFrame.image,
+          0,
+          0,
+          gif.width,
+          gif.height
+        );
+      }
+      cData = frame.image.ctx.getImageData(
+        frame.leftPos,
+        frame.topPos,
+        frame.width,
+        frame.height
+      );
+      ti = frame.transparencyIndex;
+      dat = cData.data;
+      if (frame.interlaced) {
+        pDat = deinterlaceBuf;
+      } else {
+        pDat = pixelBuf;
+      }
+      pixCount = pDat.length;
+      ind = 0;
+      for (i = 0; i < pixCount; i++) {
+        pixel = pDat[i];
+        col = ct[pixel];
+        if (ti !== pixel) {
+          dat[ind++] = col[0];
+          dat[ind++] = col[1];
+          dat[ind++] = col[2];
+          dat[ind++] = 255; // Opaque.
+        } else if (useT) {
+          dat[ind + 3] = 0; // Transparent.
+          ind += 4;
+        } else {
+          ind += 4;
+        }
+      }
+      frame.image.ctx.putImageData(cData, frame.leftPos, frame.topPos);
+      gif.lastFrame = frame;
+      if (!gif.waitTillDone && typeof gif.onload === "function") {
+        doOnloadEvent();
+      } // if !waitTillDone the call onload now after first frame is loaded
+    }
+    // **NOT** for commercial use.
+    function finnished() {
+      // called when the load has completed
+      gif.loading = false;
+      gif.frameCount = gif.frames.length;
+      gif.lastFrame = null;
+      st = undefined;
+      gif.complete = true;
+      gif.disposalMethod = undefined;
+      gif.transparencyGiven = undefined;
+      gif.delayTime = undefined;
+      gif.transparencyIndex = undefined;
+      gif.waitTillDone = undefined;
+      pixelBuf = undefined; // dereference pixel buffer
+      deinterlaceBuf = undefined; // dereference interlace buff (may or may not be used);
+      pixelBufSize = undefined;
+      deinterlaceBuf = undefined;
+      gif.currentFrame = 0;
+      if (gif.frames.length > 0) {
+        gif.image = gif.frames[0].image;
+      }
+      doOnloadEvent();
+      if (typeof gif.onloadall === "function") {
+        gif.onloadall.bind(gif)({ type: "loadall", path: [gif] });
+      }
+      if (gif.playOnLoad) {
+        gif.play();
+      }
+    }
+    function canceled() {
+      // called if the load has been cancelled
+      finnished();
+      if (typeof gif.cancelCallback === "function") {
+        gif.cancelCallback.bind(gif)({ type: "canceled", path: [gif] });
+      }
+    }
+    function parseExt() {
+      // parse extended blocks
+      const blockID = st.data[st.pos++];
+      if (blockID === GIF_FILE.GCExt) {
+        parseGCExt();
+      } else if (blockID === GIF_FILE.COMMENT) {
+        gif.comment += st.readSubBlocks();
+      } else if (blockID === GIF_FILE.APPExt) {
+        parseAppExt();
+      } else {
+        if (blockID === GIF_FILE.UNKNOWN) {
+          st.pos += 13;
+        } // skip unknow block
+        st.readSubBlocks();
+      }
+    }
+    function parseBlock() {
+      // parsing the blocks
+      if (gif.cancel !== undefined && gif.cancel === true) {
+        canceled();
+        return;
+      }
+
+      const blockId = st.data[st.pos++];
+      if (blockId === GIF_FILE.IMAGE) {
+        // image block
+        parseImg();
+        if (gif.firstFrameOnly) {
+          finnished();
+          return;
+        }
+      } else if (blockId === GIF_FILE.EOF) {
+        finnished();
+        return;
+      } else {
+        parseExt();
+      }
+      if (typeof gif.onprogress === "function") {
+        gif.onprogress({
+          bytesRead: st.pos,
+          totalBytes: st.data.length,
+          frame: gif.frames.length,
+        });
+      }
+      setTimeout(parseBlock, 0); // parsing frame async so processes can get some time in.
+    }
+    function cancelLoad(callback) {
+      // cancels the loading. This will cancel the load before the next frame is decoded
+      if (gif.complete) {
+        return false;
+      }
+      gif.cancelCallback = callback;
+      gif.cancel = true;
+      return true;
+    }
+    function error(type) {
+      if (typeof gif.onerror === "function") {
+        gif.onerror.bind(this)({ type: type, path: [this] });
+      }
+      gif.onload = gif.onerror = undefined;
+      gif.loading = false;
+    }
+    function doOnloadEvent() {
+      // fire onload event if set
+      gif.currentFrame = 0;
+      gif.nextFrameAt = gif.lastFrameAt = new Date().valueOf(); // just sets the time now
+      if (typeof gif.onload === "function") {
+        gif.onload.bind(gif)({ type: "load", path: [gif] });
+      }
+      gif.onerror = gif.onload = undefined;
+    }
+    function dataLoaded(data) {
+      // Data loaded create stream and parse
+      st = new Stream(data);
+      parse();
+    }
+    function loadGif(filename) {
+      // starts the load
+      var ajax = new XMLHttpRequest();
+      ajax.responseType = "arraybuffer";
+      ajax.onload = function (e) {
+        if (e.target.status === 404) {
+          error("File not found");
+        } else if (e.target.status >= 200 && e.target.status < 300) {
+          dataLoaded(ajax.response);
+        } else {
+          error("Loading error : " + e.target.status);
+        }
+      };
+      ajax.open("GET", filename, true);
+      ajax.send();
+      ajax.onerror = function (e) {
+        error("File error");
+      };
+      this.src = filename;
+      this.loading = true;
+    }
+    function play() {
+      // starts play if paused
+      if (!gif.playing) {
+        gif.paused = false;
+        gif.playing = true;
+        playing();
+      }
+    }
+    function pause() {
+      // stops play
+      gif.paused = true;
+      gif.playing = false;
+      clearTimeout(timerID);
+    }
+    function togglePlay() {
+      if (gif.paused || !gif.playing) {
+        gif.play();
+      } else {
+        gif.pause();
+      }
+    }
+    function seekFrame(frame) {
+      // seeks to frame number.
+      clearTimeout(timerID);
+      gif.currentFrame = frame % gif.frames.length;
+      if (gif.playing) {
+        playing();
+      } else {
+        gif.image = gif.frames[gif.currentFrame].image;
+      }
+    }
+    function seek(time) {
+      // time in Seconds  // seek to frame that would be displayed at time
+      clearTimeout(timerID);
+      if (time < 0) {
+        time = 0;
+      }
+      time *= 1000; // in ms
+      time %= gif.length;
+      var frame = 0;
+      while (
+        time > gif.frames[frame].time + gif.frames[frame].delay &&
+        frame < gif.frames.length
+      ) {
+        frame += 1;
+      }
+      gif.currentFrame = frame;
+      if (gif.playing) {
+        playing();
+      } else {
+        gif.image = gif.frames[gif.currentFrame].image;
+      }
+    }
+    function playing() {
+      var delay;
+      var frame;
+      if (gif.playSpeed === 0) {
+        gif.pause();
+        return;
+      } else {
+        if (gif.playSpeed < 0) {
+          gif.currentFrame -= 1;
+          if (gif.currentFrame < 0) {
+            gif.currentFrame = gif.frames.length - 1;
+          }
+          frame = gif.currentFrame;
+          frame -= 1;
+          if (frame < 0) {
+            frame = gif.frames.length - 1;
+          }
+          delay = (-gif.frames[frame].delay * 1) / gif.playSpeed;
+        } else {
+          gif.currentFrame += 1;
+          gif.currentFrame %= gif.frames.length;
+          delay = (gif.frames[gif.currentFrame].delay * 1) / gif.playSpeed;
+        }
+        gif.image = gif.frames[gif.currentFrame].image;
+        timerID = setTimeout(playing, delay);
+      }
+    }
+    var gif = {
+      // the gif image object
+      onload: null, // fire on load. Use waitTillDone = true to have load fire at end or false to fire on first frame
+      onerror: null, // fires on error
+      onprogress: null, // fires a load progress event
+      onloadall: null, // event fires when all frames have loaded and gif is ready
+      paused: false, // true if paused
+      playing: false, // true if playing
+      waitTillDone: true, // If true onload will fire when all frames loaded, if false, onload will fire when first frame has loaded
+      loading: false, // true if still loading
+      firstFrameOnly: false, // if true only load the first frame
+      width: null, // width in pixels
+      height: null, // height in pixels
+      frames: [], // array of frames
+      comment: "", // comments if found in file. Note I remember that some gifs have comments per frame if so this will be all comment concatenated
+      length: 0, // gif length in ms (1/1000 second)
+      currentFrame: 0, // current frame.
+      frameCount: 0, // number of frames
+      playSpeed: 1, // play speed 1 normal, 2 twice 0.5 half, -1 reverse etc...
+      lastFrame: null, // temp hold last frame loaded so you can display the gif as it loads
+      image: null, // the current image at the currentFrame
+      playOnLoad: true, // if true starts playback when loaded
+      // functions
+      load: loadGif, // call this to load a file
+      cancel: cancelLoad, // call to stop loading
+      play: play, // call to start play
+      pause: pause, // call to pause
+      seek: seek, // call to seek to time
+      seekFrame: seekFrame, // call to seek to frame
+      togglePlay: togglePlay, // call to toggle play and pause state
+    };
+    return gif;
+  };
+
+  export { GIF };
+
+  export class Controller {
+    constructor($canvas) {
+      this.$canvas = $canvas;
+      this.pressedKeys = new Set();
+      this.work();
+    }
+
+    work() {
+      let outer = this;
+      this.$canvas.keydown(function (e) {
+        outer.pressedKeys.add(e.key.toLowerCase());
+      });
+
+      this.$canvas.keyup(function (e) {
+        outer.pressedKeys.delete(e.key.toLowerCase());
+      });
+    }
+  }
+
+  class Player extends GameObject {
+    constructor(root, info) {
+      super();
+
+      this.root = root;
+      this.id = info.id;
+      this.x = info.x;
+      this.y = info.y;
+
+      this.width = 140;
+      this.height = 220;
+      this.vx = 0;
+      this.vy = 0;
+
+      this.direction = 1;
+      this.status = "jump";
+
+      this.ctx = this.root.gameMap.ctx;
+      this.pressedKeys = this.root.controller.pressedKeys;
+      this.frameCurrentCount = 0;
+
+      /*
+        存放动画
+        键(字符串): 状态名
+        值：动画
+        */
+      this.animations = new Map();
+
+      this.animationRate = 5; //动画的播放速度
+      this.animationScale = 2; //动画缩放倍数
+      this.offset_x = 0;
+      this.offset_y = 0; //动画偏移量
+
+      this.hp = 100;
+      this.$hp = this.root.$kof.find(`.kof-head-hp-${this.id}>div`);
+      this.$hpDiv = this.$hp.find("div");
+      (this.damage = 20), //攻击力
+        (this.defense = 0); //防御力
+
+      //攻击范围
+      this.attackArea = {
+        x1: 90,
+        y1: 65,
+        x2: 210,
+        y2: 100,
+      };
+
+      //攻击次数
+      this.attackCount = 0;
+    }
+
+    start() {}
+
+    isCollision(r1, r2) {
+      if (Math.max(r1.x1, r2.x1) > Math.min(r1.x2, r2.x2)) return false;
+      if (Math.max(r1.y1, r2.y1) > Math.min(r1.y2, r2.y2)) return false;
+      return true;
+    }
+
+    isAnimationOver() {
+      return (
+        this.frameCurrentCount >
+        this.animationRate * this.animations.get(this.status).frameCnt
+      );
+    }
+
+    //检测对方是否在攻击区域内
+    isSuccessfuleAttack() {
+      let you = this.root.players[1 - this.id];
+      let youR = {
+        x1: you.x,
+        y1: you.y,
+        x2: you.x + you.width,
+        y2: you.y + you.height,
+      };
+
+      let myAttack;
+      if (this.direction === 1) {
+        myAttack = {
+          x1: this.x + this.attackArea.x1,
+          y1: this.y + this.attackArea.y1,
+          x2: this.x + this.attackArea.x2,
+          y2: this.y + this.attackArea.y2,
+        };
+      } else {
+        myAttack = {
+          x1: this.x + this.width - this.attackArea.x2,
+          y1: this.y + this.attackArea.y1,
+          x2: this.x + this.width - this.attackArea.x1,
+          y2: this.y + this.attackArea.y2,
+        };
+      }
+      return this.isCollision(myAttack, youR);
+    }
+
+    updateStatus() {}
+
+    updateMove() {
+      this.vy += (GRAVITY * this.timedelta) / 1000;
+
+      let you = this.root.players[1 - this.id];
+      if (
+        this.isCollision(
+          {
+            x1: this.x,
+            y1: this.y,
+            x2: this.x + this.width,
+            y2: this.y + this.height,
+          },
+          {
+            x1: you.x,
+            y1: you.y,
+            x2: you.x + you.width,
+            y2: you.y + you.height,
+          }
+        ) &&
+        (you.x - this.x) * this.vx > 0
+      ) {
+        this.x += (this.vx * this.timedelta) / 1000 / 2;
+        you.x += (this.vx * this.timedelta) / 1000 / 2;
+      } else {
+        this.x += (this.vx * this.timedelta) / 1000;
+      }
+      this.y += (this.vy * this.timedelta) / 1000;
+      //防止越出下边界
+      if (this.y > this.ctx.canvas.height - this.height - GROUND_HEIGHT) {
+        this.y = this.ctx.canvas.height - this.height - GROUND_HEIGHT;
+        this.vy = 0;
+      }
+      //防止左右越界
+      if (this.x < 0) {
+        this.x = 0;
+      } else if (this.x + this.width > this.ctx.canvas.width) {
+        this.x = this.ctx.canvas.width - this.width;
+      }
+    }
+
+    updateDirection() {
+      if (this.status === "die") return;
+      let me = this.root.players[this.id],
+        you = this.root.players[1 - this.id];
+      if (me.x < you.x) me.direction = 1;
+      else me.direction = -1;
+    }
+
+    update() {
+      if (this.pressedKeys.has("escape")) {
+        this.root.endGame();
+      }
+      if (this.root.gameStatus != "started") {
+        return;
+      }
+      this.updateStatus();
+      this.updateMove();
+      this.updateDirection();
+      this.render();
+    }
+
+    render() {
+      // this.ctx.fillStyle = "green";
+      // this.ctx.fillRect(this.x,this.y,this.width,this.height);
+
+      // this.ctx.fillStyle = "red";
+      // if(this.direction===1){
+      //     this.ctx.fillRect(this.x+this.attackArea.x1,this.y+this.attackArea.y1,
+      //         this.attackArea.x2-this.attackArea.x1,
+      //         this.attackArea.y2 - this.attackArea.y1,
+      //     )
+      // }else {
+      //     this.ctx.fillRect(this.x +this.width- this.attackArea.x2,this.y+this.attackArea.y1,
+      //         this.attackArea.x2-this.attackArea.x1,
+      //         this.attackArea.y2 - this.attackArea.y1)
+      // }
+
+      let obj = this.animations.get(this.status);
+      if (obj && obj.loaded) {
+        let k =
+          parseInt(this.frameCurrentCount / this.animationRate) % obj.frameCnt;
+        let image = obj.gif.frames[k].image;
+
+        if (this.direction === 1) {
+          this.ctx.drawImage(
+            image,
+            this.x + this.offset_x,
+            this.y + this.offset_y,
+            image.width * this.animationScale,
+            image.height * this.animationScale
+          );
+        } else {
+          this.ctx.save();
+          this.ctx.scale(-1, 1);
+          this.ctx.translate(-this.ctx.canvas.width, 0);
+          this.ctx.drawImage(
+            image,
+            this.ctx.canvas.width - this.x - this.width + this.offset_x,
+            this.y + this.offset_y,
+            image.width * this.animationScale,
+            image.height * this.animationScale
+          );
+          this.ctx.restore();
+        }
+      }
+      this.frameCurrentCount++;
+    }
+  }
+
+  class Karakuri extends Player {
+    constructor(root, info) {
+      super(root, info);
+
+      //存放角色的所有状态 gif的文件名必须与状态名相同
+      this.allStates = [];
+      this.initSkills();
+      this.initAnimations();
+    }
+
+    initSkills() {
+      this.allStates = [
+        "idle",
+        "forward",
+        "backward",
+        "jump",
+        "squat",
+        "normalAttack",
+        "die",
+        "attacked",
+        "squatAttack",
+        "sweep",
+        "win",
+        "sweep",
+      ];
+    }
+
+    initAnimations() {
+      let outer = this;
+      for (let i = 0; i < this.allStates.length; i++) {
+        let gif = GIF();
+        gif.load(
+          `player/karakuri/${this.allStates[i]}.gif`
+        );
+        this.animations.set(this.allStates[i], {
+          gif: gif,
+          frameCnt: 0, //总图片数
+          loaded: false, //是否加载完成
+        });
+        gif.onload = function () {
+          let obj = outer.animations.get(outer.allStates[i]);
+          obj.frameCnt = gif.frames.length;
+          obj.loaded = true;
+        };
+      }
+    }
+
+    idle() {
+      this.status = "idle";
+      this.width = 120;
+      this.height = 260;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    forward() {
+      this.status = "forward";
+      this.width = 120;
+      this.height = 260;
+
+      this.vx = this.direction * 400;
+      this.vy = 0;
+      this.defense = 0;
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    backward() {
+      this.status = "backward";
+      this.width = 120;
+      this.height = 260;
+      this.defense = 0;
+
+      this.vx = -this.direction * 400;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 6;
+    }
+
+    jump() {
+      this.status = "jump";
+      this.width = 120;
+      this.height = 260;
+      this.defense = 0;
+
+      this.y -= 200;
+      this.vy = -1500;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 15;
+      this.animationRate = 5;
+    }
+
+    squat() {
+      this.status = "squat";
+      this.width = 140;
+      this.height = 180;
+      this.defense = 0;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -90;
+      this.frameCurrentCount = 38;
+      this.animationRate = 8;
+    }
+
+    squatAttack() {
+      this.status = "squatAttack";
+      this.width = 140;
+      this.height = 180;
+
+      this.damage = 20;
+      this.defense = 10;
+      this.attackCount = 1;
+
+      this.attackArea = {
+        x1: 140,
+        y1: 0,
+        x2: 360,
+        y2: 70,
+      };
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -85;
+      this.offset_y = -35;
+      this.frameCurrentCount = 0;
+      this.animationRate = 6;
+    }
+
+    normalAttack() {
+      this.status = "normalAttack";
+      this.attackCount = 4;
+      this.attackArea = {
+        x1: 120,
+        y1: 40,
+        x2: 500,
+        y2: 260,
+      };
+      this.damage = 5;
+      this.defense = 10;
+      this.width = 120;
+      this.height = 260;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    attacked() {
+      if (this.hp <= 0) return;
+      this.status = "attacked";
+
+      this.hp -= Math.max(
+        this.root.players[1 - this.id].damage - this.defense,
+        0
+      );
+      this.$hpDiv.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        300
+      );
+      this.$hp.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        600
+      );
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      this.width = 120;
+      this.height = 260;
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -460;
+      this.offset_y = -50;
+      this.animationRate = 4;
+    }
+
+    die() {
+      this.status = "die";
+
+      this.width = 120;
+      this.height = 50;
+      this.vx = 0;
+      this.vy = 0;
+      this.attackArea = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+      };
+      this.root.players[1 - this.id].win();
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -40;
+      this.offset_y = -220;
+      this.animationRate = 5;
+    }
+
+    win() {
+      this.status = "win";
+      this.width = 120;
+      this.height = 260;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -200;
+      this.offset_y = -100;
+      this.animationRate = 4;
+    }
+
+    sweep() {
+      this.status = "sweep";
+      this.attackCount = 4;
+      this.attackArea = {
+        x1: -150,
+        y1: -20,
+        x2: 300,
+        y2: 100,
+      };
+      this.damage = 10;
+      this.defense = 10;
+      this.width = 120;
+      this.height = 260;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -190;
+      this.offset_y = -20;
+      this.animationRate = 4;
+    }
+
+    updateStatus() {
+      let w, a, d, s, space, f;
+      if (this.id === 0) {
+        w = this.pressedKeys.has("w");
+        a = this.pressedKeys.has("a");
+        d = this.pressedKeys.has("d");
+        s = this.pressedKeys.has("s");
+        f = this.pressedKeys.has("f");
+        space = this.pressedKeys.has(" ");
+      } else {
+        w = this.pressedKeys.has("arrowup");
+        a = this.pressedKeys.has("arrowleft");
+        s = this.pressedKeys.has("arrowdown");
+        f = this.pressedKeys.has("shift");
+        d = this.pressedKeys.has("arrowright");
+        space = this.pressedKeys.has("enter");
+      }
+
+      if (this.status === "idle") {
+        if (f) {
+          this.sweep();
+        } else if (w) {
+          this.jump();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        }
+      } else if (this.status === "forward") {
+        if (f) {
+          this.sweep();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "backward") {
+        if (f) {
+          this.sweep();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "jump") {
+        if (this.y === this.ctx.canvas.height - this.height - GROUND_HEIGHT) {
+          this.idle();
+        } else {
+          if (d) {
+            this.vx = 400;
+          } else if (a) {
+            this.vx = -400;
+          }
+        }
+      } else if (this.status === "squat") {
+        if (!s) {
+          if (f) {
+            this.sweep();
+          } else if (w) {
+            this.idle();
+          } else if (d) {
+            if (this.direction === 1) this.forward();
+            else this.backward();
+          } else if (a) {
+            if (this.direction === 1) this.backward();
+            else this.forward();
+          }
+        }
+        if (this.frameCurrentCount >= 55) {
+          this.frameCurrentCount = 35;
+        }
+
+        if (space) {
+          this.squatAttack();
+        }
+      } else if (this.status === "squatAttack") {
+        if (this.isAnimationOver()) {
+          this.squat();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 19 &&
+            this.frameCurrentCount <= 25
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount--;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "sweep") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 9 &&
+            this.frameCurrentCount <= 110
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount--;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "normalAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 50 &&
+            this.frameCurrentCount <= 135
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount--;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "attacked") {
+        if (this.frameCurrentCount === 60) {
+          if (this.hp <= 0) {
+            this.die();
+          } else {
+            this.x -= this.width * this.direction;
+            this.idle();
+          }
+        }
+      } else if (this.status === "die") {
+        if (this.frameCurrentCount === 160) {
+          this.frameCurrentCount = 150;
+        }
+      } else if (this.status === "win") {
+        if (this.frameCurrentCount >= 160) {
+          this.idle();
+          this.root.endGame();
+        }
+      }
+    }
+  }
+
+  class RedRobot extends Player {
+    constructor(root, info) {
+      super(root, info);
+
+      //存放角色的所有状态 gif的文件名必须与状态名相同
+      this.allStates = [];
+      this.initSkills();
+      this.initAnimations();
+    }
+
+    initSkills() {
+      this.allStates = [
+        "idle",
+        "forward",
+        "backward",
+        "jump",
+        "squat",
+        "normalAttack",
+        "die",
+        "attacked",
+        "squatAttack",
+        "win",
+        "standDefense",
+        "squatDefense",
+        "jumpAttack",
+        "attackBack",
+      ];
+    }
+
+    initAnimations() {
+      let outer = this;
+      for (let i = 0; i < this.allStates.length; i++) {
+        let gif = GIF();
+        gif.load(
+          `player/redRobot/${this.allStates[i]}.gif`
+        );
+        this.animations.set(this.allStates[i], {
+          gif: gif,
+          frameCnt: 0, //总图片数
+          loaded: false, //是否加载完成
+        });
+        gif.onload = function () {
+          let obj = outer.animations.get(outer.allStates[i]);
+          obj.frameCnt = gif.frames.length;
+          obj.loaded = true;
+        };
+      }
+    }
+
+    idle() {
+      this.status = "idle";
+      this.width = 160;
+      this.height = 190;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.offset_x = -20;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    forward() {
+      this.status = "forward";
+      this.width = 150;
+      this.height = 190;
+      this.vx = this.direction * 400;
+      this.vy = 0;
+      this.defense = 0;
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    backward() {
+      this.status = "backward";
+      this.width = 150;
+      this.height = 190;
+      this.defense = 0;
+
+      this.vx = -this.direction * 400;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 6;
+    }
+
+    jump() {
+      this.status = "jump";
+      this.width = 150;
+      this.height = 190;
+      this.defense = 0;
+
+      this.y -= 200;
+      this.vy = -1500;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 10;
+      this.animationRate = 5;
+    }
+
+    jumpAttack() {
+      this.status = "jumpAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 100,
+        y1: 0,
+        x2: 420,
+        y2: 100,
+      };
+      this.width = 150;
+      this.height = 190;
+      this.defense = 10;
+
+      this.y -= 100;
+      this.vy = -1500;
+
+      //动画相关
+      this.offset_x = -110;
+      this.offset_y = -200;
+      this.frameCurrentCount = 0;
+      this.animationRate = 3;
+    }
+
+    squat() {
+      this.status = "squat";
+      this.width = 150;
+      this.height = 140;
+      this.defense = 0;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -30;
+      this.offset_y = -60;
+      this.frameCurrentCount = 38;
+      this.animationRate = 16;
+    }
+
+    squatAttack() {
+      this.status = "squatAttack";
+      this.width = 150;
+      this.height = 140;
+
+      this.damage = 20;
+      this.defense = 10;
+      this.attackCount = 1;
+
+      this.attackArea = {
+        x1: 140,
+        y1: 70,
+        x2: 260,
+        y2: 140,
+      };
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -85;
+      this.offset_y = -35;
+      this.frameCurrentCount = 0;
+      this.animationRate = 6;
+    }
+
+    squatDefense() {
+      this.status = "squatDefense";
+      this.defense = 20;
+      this.width = 150;
+      this.height = 140;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = -40;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    normalAttack() {
+      this.status = "normalAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 120,
+        y1: 55,
+        x2: 260,
+        y2: 90,
+      };
+      this.damage = 20;
+      this.defense = 10;
+      this.width = 160;
+      this.height = 190;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -30;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    attackBack() {
+      this.status = "attackBack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 130,
+        y1: 80,
+        x2: 420,
+        y2: 150,
+      };
+      this.damage = 30;
+      this.defense = 10;
+      this.width = 160;
+      this.height = 190;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -60;
+      this.offset_y = -20;
+      this.animationRate = 5;
+    }
+    attacked() {
+      if (this.hp <= 0) return;
+      this.status = "attacked";
+      this.hp -= Math.max(
+        this.root.players[1 - this.id].damage - this.defense,
+        0
+      );
+      this.$hpDiv.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        300
+      );
+      this.$hp.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        600
+      );
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      this.width = 160;
+      this.height = 190;
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = -10;
+      this.animationRate = 4;
+    }
+    standDefense() {
+      this.status = "standDefense";
+      this.defense = 20;
+      this.width = 160;
+      this.height = 190;
+
+      this.vx = 0;
+      this.vy = 0;
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = -20;
+      this.frameCurrentCount = 0;
+      this.animationRate = 4;
+    }
+
+    die() {
+      this.status = "die";
+      this.width = 200;
+      this.height = 100;
+      this.vx = 0;
+      this.vy = 0;
+      this.attackArea = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+      };
+      this.root.players[1 - this.id].win();
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -40;
+      this.offset_y = -250;
+      this.animationRate = 5;
+    }
+
+    win() {
+      this.status = "win";
+      this.width = 160;
+      this.height = 190;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -40;
+      this.offset_y = -35;
+      this.animationRate = 9;
+    }
+
+    updateStatus() {
+      let w, a, d, s, space, f;
+      if (this.id === 0) {
+        w = this.pressedKeys.has("w");
+        a = this.pressedKeys.has("a");
+        d = this.pressedKeys.has("d");
+        s = this.pressedKeys.has("s");
+        f = this.pressedKeys.has("f");
+        space = this.pressedKeys.has(" ");
+      } else {
+        w = this.pressedKeys.has("arrowup");
+        a = this.pressedKeys.has("arrowleft");
+        s = this.pressedKeys.has("arrowdown");
+        f = this.pressedKeys.has("shift");
+        d = this.pressedKeys.has("arrowright");
+        space = this.pressedKeys.has("enter");
+      }
+
+      if (this.status === "idle") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        }
+      } else if (this.status === "forward") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "backward") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "jump") {
+        if (this.y === this.ctx.canvas.height - this.height - GROUND_HEIGHT) {
+          this.idle();
+        } else {
+          if (d) {
+            this.vx = 400;
+          } else if (a) {
+            this.vx = -400;
+          }
+        }
+      } else if (this.status === "jumpAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 35 &&
+            this.frameCurrentCount <= 50
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "standDefense") {
+        if (!f) {
+          this.idle();
+        } else if (f && space) {
+          this.attackBack();
+        }
+      } else if (this.status == "attackBack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 45 &&
+            this.frameCurrentCount <= 95
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "squat") {
+        if (!s) {
+          if (w) {
+            this.jump();
+          } else if (d) {
+            if (this.direction === 1) this.forward();
+            else this.backward();
+          } else if (a) {
+            if (this.direction === 1) this.backward();
+            else this.forward();
+          } else if (space) {
+            this.squatAttack();
+          }
+        }
+        if (f) {
+          this.squatDefense();
+        }
+        if (this.frameCurrentCount >= 55) {
+          this.frameCurrentCount = 35;
+        }
+      } else if (this.status === "squatAttack") {
+        if (this.isAnimationOver()) {
+          this.squat();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 19 &&
+            this.frameCurrentCount <= 25
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount--;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "squatDefense") {
+        if (this.isAnimationOver()) {
+          this.squat();
+        }
+      } else if (this.status === "normalAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else if (w && space) {
+          this.jumpAttack();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 15 &&
+            this.frameCurrentCount <= 25
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount--;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "attacked") {
+        if (this.frameCurrentCount === 60) {
+          if (this.hp <= 0) {
+            this.die();
+          } else {
+            this.idle();
+          }
+        }
+      } else if (this.status === "die") {
+        if (this.frameCurrentCount >= 160) {
+          this.frameCurrentCount--;
+        }
+      } else if (this.status === "win") {
+        if (this.isAnimationOver()) {
+          this.idle();
+          this.root.endGame();
+        }
+      }
+    }
+  }
+
+  class Ryo extends Player {
+    constructor(root, info) {
+      super(root, info);
+
+      //存放角色的所有状态 gif的文件名必须与状态名相同
+      this.allStates = [];
+      this.initSkills();
+      this.initAnimations();
+    }
+
+    initSkills() {
+      this.allStates = [
+        "idle",
+        "forward",
+        "backward",
+        "jump",
+        "jumpAttack",
+        "squat",
+        "normalAttack",
+        "attacked",
+        "die",
+        "squatDefense",
+        "overLordFist",
+        "win",
+        "tigerDragonDance",
+        "standDefense",
+      ];
+    }
+
+    initAnimations() {
+      let outer = this;
+      for (let i = 0; i < this.allStates.length; i++) {
+        let gif = GIF();
+        gif.load(
+          `player/ryo/${this.allStates[i]}.gif`
+        );
+        this.animations.set(this.allStates[i], {
+          gif: gif,
+          frameCnt: 0, //总图片数
+          loaded: false, //是否加载完成
+        });
+
+        gif.onload = function () {
+          let obj = outer.animations.get(outer.allStates[i]);
+          obj.frameCnt = gif.frames.length;
+          obj.loaded = true;
+        };
+      }
+    }
+
+    idle() {
+      this.status = "idle";
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.animationRate = 6;
+    }
+
+    forward() {
+      this.status = "forward";
+      this.width = 120;
+      this.height = 220;
+
+      this.vx = this.direction * 400;
+      this.vy = 0;
+      this.defense = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 10;
+      this.animationRate = 6;
+    }
+
+    backward() {
+      this.status = "backward";
+      this.width = 120;
+      this.height = 220;
+      this.defense = 0;
+
+      this.vx = -this.direction * 400;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 10;
+      this.animationRate = 6;
+    }
+
+    jump() {
+      this.status = "jump";
+      this.width = 140;
+      this.height = 220;
+      this.defense = 0;
+
+      this.y -= 200;
+      this.vy = -1700;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    jumpAttack() {
+      this.status = "jumpAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 90,
+        y1: 0,
+        x2: 210,
+        y2: 80,
+      };
+      this.width = 140;
+      this.height = 220;
+      this.defense = 10;
+
+      this.vy = -1700;
+
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = -100;
+      this.frameCurrentCount = 10;
+      this.animationRate = 3.3;
+    }
+    squat() {
+      this.status = "squat";
+      this.width = 120;
+      this.height = 150;
+      this.defense = 0;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = -50;
+      this.frameCurrentCount = 0;
+      this.animationRate = 16;
+    }
+
+    normalAttack() {
+      this.status = "normalAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 90,
+        y1: 65,
+        x2: 210,
+        y2: 100,
+      };
+      this.defense = 0;
+
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = 0;
+      this.offset_y = 5;
+      this.animationRate = 6;
+    }
+
+    attacked() {
+      if (this.hp <= 0) return;
+      this.status = "attacked";
+
+      this.hp -= Math.max(
+        this.root.players[1 - this.id].damage - this.defense,
+        0
+      );
+      this.$hpDiv.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        300
+      );
+      this.$hp.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        600
+      );
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      this.width = 140;
+      this.height = 220;
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -100;
+      this.offset_y = 5;
+      this.animationRate = 3;
+    }
+
+    die() {
+      this.status = "die";
+
+      this.width = 240;
+      this.height = 50;
+      this.vx = 0;
+      this.vy = 0;
+      this.attackArea = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+      };
+
+      this.root.players[1 - this.id].win();
+
+      //动画相关
+      this.frameCurrentCount = 20;
+      this.offset_x = 0;
+      this.offset_y = -240;
+      this.animationRate = 5;
+    }
+
+    standDefense() {
+      this.status = "standDefense";
+      this.defense = 20;
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -15;
+      this.offset_y = 15;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    squatDefense() {
+      this.status = "squatDefense";
+      this.defense = 20;
+      this.width = 120;
+      this.height = 150;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 0;
+      this.animationRate = 16;
+    }
+
+    overLordFist() {
+      this.status = "overLordFist";
+      this.attackCount = 1;
+      this.damage = 50;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 100,
+        y1: -10,
+        x2: 560,
+        y2: 220,
+      };
+
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = 0;
+      this.offset_y = -85;
+      this.animationRate = 6;
+    }
+
+    win() {
+      this.status = "win";
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = 0;
+      this.offset_y = -20;
+      this.animationRate = 15;
+    }
+
+    tigerDragonDance() {
+      this.status = "tigerDragonDance";
+      this.attackCount = 9;
+      this.damage = 10;
+      this.defense = 50;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = 0;
+      this.offset_y = -360;
+      this.animationRate = 4;
+    }
+
+    updateStatus() {
+      let w, a, d, s, space, f;
+      if (this.id === 0) {
+        w = this.pressedKeys.has("w");
+        a = this.pressedKeys.has("a");
+        d = this.pressedKeys.has("d");
+        s = this.pressedKeys.has("s");
+        f = this.pressedKeys.has("f");
+        space = this.pressedKeys.has(" ");
+      } else {
+        w = this.pressedKeys.has("arrowup");
+        a = this.pressedKeys.has("arrowleft");
+        s = this.pressedKeys.has("arrowdown");
+        f = this.pressedKeys.has("shift");
+        d = this.pressedKeys.has("arrowright");
+        space = this.pressedKeys.has("enter");
+      }
+
+      if (this.status === "idle") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        }
+      } else if (this.status === "forward") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "backward") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "jump") {
+        if (this.y === this.ctx.canvas.height - this.height - GROUND_HEIGHT) {
+          this.idle();
+        } else {
+          if (d) {
+            this.vx = 400;
+          } else if (a) {
+            this.vx = -400;
+          }
+        }
+      } else if (this.status === "jumpAttack") {
+        if (this.isAnimationOver()) {
+          this.status = "jump";
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 25 &&
+            this.frameCurrentCount <= 100
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "squat") {
+        if (!s) {
+          if (w) {
+            this.jump();
+          } else if (d) {
+            if (this.direction === 1) this.forward();
+            else this.backward();
+          } else if (a) {
+            if (this.direction === 1) this.backward();
+            else this.forward();
+          } else if (space) {
+            this.normalAttack();
+          }
+        }
+        if (f) {
+          this.squatDefense();
+        }
+      } else if (this.status === "squatDefense") {
+        if (!f) {
+          this.squat();
+        }
+      } else if (this.status === "standDefense") {
+        if (!f) {
+          this.idle();
+        } else if (space) {
+          this.tigerDragonDance();
+        }
+      } else if (this.status === "normalAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else if (w && space) {
+          this.jumpAttack();
+        } else if (d && space) {
+          this.overLordFist();
+        } else if (f && space) {
+          this.tigerDragonDance();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 25 &&
+            this.frameCurrentCount <= 50
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "overLordFist") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 110 &&
+            this.frameCurrentCount <= 160
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "tigerDragonDance") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (this.frameCurrentCount < 90) {
+            //准备动作
+            this.vx = 0;
+            this.width = 100;
+            this.offset_x = -80;
+          } else if (this.frameCurrentCount < 120) {
+            //起跳
+            this.offset_x -= 10;
+            this.vx = 1500 * this.direction;
+            this.width = 160;
+          } else if (this.frameCurrentCount < 460) {
+            //水平挥拳
+            this.width = 100;
+            this.attackArea = {
+              x1: 100,
+              y1: -10,
+              x2: 200,
+              y2: 220,
+            };
+            this.offset_x -= 1.5;
+            this.vx = 100 * this.direction;
+          } else if (this.frameCurrentCount === 460) {
+            this.offset_x -= 40;
+          } else {
+            this.vx = 0;
+            this.attackArea = {
+              x1: 0,
+              y1: -40,
+              x2: this.width + 50,
+              y2: 50,
+            };
+          }
+
+          let you = this.root.players[1 - this.id];
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            you.status != "attacked" &&
+            this.damage > you.defense
+          ) {
+            this.attackCount--;
+            you.attacked();
+          }
+        }
+      } else if (this.status === "attacked") {
+        if (this.isAnimationOver()) {
+          if (this.hp <= 0) {
+            this.die();
+          } else {
+            this.idle();
+          }
+        }
+      } else if (this.status === "die") {
+        if (this.frameCurrentCount === 70) {
+          this.frameCurrentCount--;
+        }
+      } else if (this.status === "win") {
+        if (this.isAnimationOver()) {
+          this.idle();
+          this.root.endGame();
+        }
+      }
+    }
+  }
+
+  class Tsunade extends Player {
+    constructor(root, info) {
+      super(root, info);
+      //存放角色的所有状态 gif的文件名必须与状态名相同
+      this.allStates = [];
+      this.initSkills();
+      this.initAnimations();
+    }
+
+    initSkills() {
+      this.allStates = [
+        "idle",
+        "forward",
+        "backward",
+        "jump",
+        "jumpAttack",
+        "squat",
+        "normalAttack",
+        "attacked",
+        "die",
+        "squatDefense",
+        "win",
+        "standDefense",
+        "mustKill",
+      ];
+    }
+
+    initAnimations() {
+      let outer = this;
+      for (let i = 0; i < this.allStates.length; i++) {
+        let gif = GIF();
+        gif.load(
+          `player/tsunade/${this.allStates[i]}.gif`
+        );
+        this.animations.set(this.allStates[i], {
+          gif: gif,
+          frameCnt: 0, //总图片数
+          loaded: false, //是否加载完成
+        });
+
+        gif.onload = function () {
+          let obj = outer.animations.get(outer.allStates[i]);
+          obj.frameCnt = gif.frames.length;
+          obj.loaded = true;
+        };
+      }
+    }
+
+    idle() {
+      this.status = "idle";
+      this.width = 120;
+      this.height = 170;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.offset_x = -40;
+      this.offset_y = -10;
+      this.animationRate = 6;
+    }
+
+    forward() {
+      this.status = "forward";
+      this.width = 120;
+      this.height = 170;
+
+      this.vx = this.direction * 300;
+      this.vy = 0;
+      this.defense = 0;
+
+      //动画相关
+      this.offset_x = -40;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    backward() {
+      this.status = "backward";
+      this.width = 120;
+      this.height = 170;
+      this.defense = 0;
+
+      this.vx = -this.direction * 300;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -40;
+      this.offset_y = -10;
+      this.animationRate = 5;
+    }
+
+    jump() {
+      this.status = "jump";
+      this.width = 120;
+      this.height = 170;
+      this.defense = 0;
+
+      this.y -= 200;
+      this.vy = -1700;
+
+      //动画相关
+      this.offset_x = -40;
+      this.offset_y = -200;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    jumpAttack() {
+      this.status = "jumpAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 0,
+        y1: -200,
+        x2: 300,
+        y2: -100,
+      };
+      this.width = 120;
+      this.height = 170;
+      this.defense = 10;
+
+      this.vy = -1000;
+
+      //动画相关
+      this.offset_x = -100;
+      this.offset_y = -250;
+      this.frameCurrentCount = 0;
+      this.animationRate = 3;
+    }
+    squat() {
+      this.status = "squat";
+      this.width = 120;
+      this.height = 120;
+      this.defense = 0;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -60;
+      this.offset_y = -60;
+      this.frameCurrentCount = 0;
+      this.animationRate = 4;
+    }
+
+    normalAttack() {
+      this.status = "normalAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 120,
+        y1: 20,
+        x2: 300,
+        y2: 90,
+      };
+      this.damage = 20;
+      this.defense = 10;
+      this.width = 120;
+      this.height = 170;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -100;
+      this.offset_y = -70;
+      this.animationRate = 6;
+    }
+
+    mustKill() {
+      this.status = "mustKill";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 120,
+        y1: -60,
+        x2: 600,
+        y2: 90,
+      };
+      this.damage = 70;
+      this.defense = 40;
+      this.width = 120;
+      this.height = 170;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -100;
+      this.offset_y = -110;
+      this.animationRate = 5;
+    }
+
+    attacked() {
+      if (this.hp <= 0) return;
+      this.status = "attacked";
+
+      this.hp -= Math.max(
+        this.root.players[1 - this.id].damage - this.defense,
+        0
+      );
+      this.$hpDiv.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        300
+      );
+      this.$hp.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        600
+      );
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      this.width = 120;
+      this.height = 170;
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = -90;
+      this.animationRate = 3;
+    }
+
+    die() {
+      this.status = "die";
+
+      this.width = 100;
+      this.height = 50;
+      this.vx = 0;
+      this.vy = 0;
+      this.attackArea = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+      };
+      this.root.players[1 - this.id].win();
+      //动画相关
+      this.frameCurrentCount = 30;
+      this.offset_x = -50;
+      this.offset_y = -200;
+      this.animationRate = 5;
+    }
+
+    standDefense() {
+      this.status = "standDefense";
+      this.defense = 20;
+      this.width = 110;
+      this.height = 170;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -60;
+      this.offset_y = -30;
+      this.frameCurrentCount = 0;
+      this.animationRate = 4;
+    }
+
+    squatDefense() {
+      this.status = "squatDefense";
+      this.defense = 20;
+      this.width = 120;
+      this.height = 120;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -60;
+      this.offset_y = -80;
+      this.frameCurrentCount = 0;
+      this.animationRate = 12;
+    }
+
+    win() {
+      this.status = "win";
+      this.width = 120;
+      this.height = 170;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = -90;
+      this.animationRate = 5;
+    }
+
+    updateStatus() {
+      let w, a, d, s, space, f;
+      if (this.id === 0) {
+        w = this.pressedKeys.has("w");
+        a = this.pressedKeys.has("a");
+        d = this.pressedKeys.has("d");
+        s = this.pressedKeys.has("s");
+        f = this.pressedKeys.has("f");
+        space = this.pressedKeys.has(" ");
+      } else {
+        w = this.pressedKeys.has("arrowup");
+        a = this.pressedKeys.has("arrowleft");
+        s = this.pressedKeys.has("arrowdown");
+        f = this.pressedKeys.has("shift");
+        d = this.pressedKeys.has("arrowright");
+        space = this.pressedKeys.has("enter");
+      }
+
+      if (this.status === "idle") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        }
+      } else if (this.status === "forward") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.jump();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "backward") {
+        if (w) {
+          this.jump();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "jump") {
+        if (this.y === this.ctx.canvas.height - this.height - GROUND_HEIGHT) {
+          this.idle();
+        } else {
+          if (d) {
+            this.vx = 400;
+          } else if (a) {
+            this.vx = -400;
+          } else if (space) {
+            this.jumpAttack();
+          }
+        }
+      } else if (this.status === "jumpAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 25 &&
+            this.frameCurrentCount <= 100
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "squat") {
+        if (!s) {
+          if (w) {
+            this.idle();
+          } else if (f) {
+            this.squatDefense();
+          } else if (d) {
+            if (this.direction === 1) this.forward();
+            else this.backward();
+          } else if (a) {
+            if (this.direction === 1) this.backward();
+            else this.forward();
+          } else if (space) {
+            this.normalAttack();
+          }
+        }
+        if (this.frameCurrentCount === 40) {
+          this.frameCurrentCount--;
+        }
+      } else if (this.status === "squatDefense") {
+        if (!f) {
+          this.squat();
+        }
+      } else if (this.status === "standDefense") {
+        if (!f) {
+          this.idle();
+        }
+      } else if (this.status === "normalAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else if (w && space) {
+          this.jumpAttack();
+        } else if (f && space) {
+          this.mustKill();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 30 &&
+            this.frameCurrentCount <= 40
+          ) {
+            this.attackCount = 0;
+            let you = this.root.players[1 - this.id];
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "mustKill") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 40 &&
+            this.frameCurrentCount <= 90
+          ) {
+            this.attackCount = 0;
+            let you = this.root.players[1 - this.id];
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "attacked") {
+        if (this.isAnimationOver()) {
+          if (this.hp <= 0) {
+            this.die();
+          } else {
+            this.idle();
+          }
+        }
+      } else if (this.status === "die") {
+        if (this.frameCurrentCount === 160) {
+          this.frameCurrentCount--;
+        }
+      } else if (this.status === "win") {
+        if (this.isAnimationOver()) {
+          this.idle();
+          this.root.endGame();
+        }
+      }
+    }
+  }
+
+  class Yuri extends Player {
+    constructor(root, info) {
+      super(root, info);
+
+      //存放角色的所有状态 gif的文件名必须与状态名相同
+      this.allStates = [];
+      this.initSkills();
+      this.initAnimations();
+    }
+
+    initSkills() {
+      this.allStates = [
+        "idle",
+        "forward",
+        "backward",
+        "jump",
+        "jumpAttack",
+        "squat",
+        "normalAttack",
+        "attacked",
+        "die",
+        "squatDefense",
+        "win",
+        "standDefense",
+      ];
+    }
+
+    initAnimations() {
+      let outer = this;
+      for (let i = 0; i < this.allStates.length; i++) {
+        let gif = GIF();
+        gif.load(
+          `player/yuri/${this.allStates[i]}.gif`
+        );
+        this.animations.set(this.allStates[i], {
+          gif: gif,
+          frameCnt: 0, //总图片数
+          loaded: false, //是否加载完成
+        });
+
+        gif.onload = function () {
+          let obj = outer.animations.get(outer.allStates[i]);
+          obj.frameCnt = gif.frames.length;
+          obj.loaded = true;
+        };
+      }
+    }
+
+    idle() {
+      this.status = "idle";
+      this.width = 120;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = -10;
+      this.animationRate = 6;
+    }
+
+    forward() {
+      this.status = "forward";
+      this.width = 120;
+      this.height = 200;
+
+      this.vx = this.direction * 400;
+      this.defense = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 10;
+      this.animationRate = 6;
+    }
+
+    backward() {
+      this.status = "backward";
+      this.width = 120;
+      this.height = 200;
+      this.defense = 0;
+
+      this.vx = -this.direction * 400;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = -10;
+      this.animationRate = 6;
+    }
+
+    jump() {
+      this.status = "jump";
+      this.width = 140;
+      this.height = 220;
+      this.defense = 0;
+
+      this.y -= 200;
+      this.vy = -1700;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    jumpAttack() {
+      this.status = "jumpAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 70,
+        y1: 0,
+        x2: 120,
+        y2: 40,
+      };
+      this.width = 90;
+      this.height = 140;
+      this.defense = 10;
+
+      this.vy = -1700;
+
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = -100;
+      this.frameCurrentCount = 3;
+      this.animationRate = 2.4;
+    }
+    squat() {
+      this.status = "squat";
+      this.width = 110;
+      this.height = 120;
+      this.defense = 0;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = -70;
+      this.frameCurrentCount = 0;
+      this.animationRate = 16;
+    }
+
+    normalAttack() {
+      this.status = "normalAttack";
+      this.attackCount = 4;
+      this.attackArea = {
+        x1: 120,
+        y1: 40,
+        x2: 230,
+        y2: 90,
+      };
+      this.damage = 5;
+      this.defense = 10;
+      this.width = 120;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -30;
+      this.offset_y = -20;
+      this.animationRate = 6;
+    }
+
+    attacked() {
+      if (this.hp <= 0) return;
+      this.status = "attacked";
+
+      this.hp -= Math.max(
+        this.root.players[1 - this.id].damage - this.defense,
+        0
+      );
+      this.$hpDiv.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        300
+      );
+      this.$hp.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        600
+      );
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      this.width = 140;
+      this.height = 220;
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = 5;
+      this.animationRate = 3;
+    }
+
+    die() {
+      this.status = "die";
+
+      this.width = 240;
+      this.height = 50;
+      this.vx = 0;
+      this.vy = 0;
+      this.attackArea = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+      };
+      this.root.players[1 - this.id].win();
+      //动画相关
+      this.frameCurrentCount = 10;
+      this.offset_x = 0;
+      this.offset_y = -250;
+      this.animationRate = 5;
+    }
+
+    standDefense() {
+      this.status = "standDefense";
+      this.defense = 20;
+      this.width = 110;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    squatDefense() {
+      this.status = "squatDefense";
+      this.defense = 20;
+      this.width = 120;
+      this.height = 120;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = 0;
+      this.offset_y = 0;
+      this.frameCurrentCount = 0;
+      this.animationRate = 16;
+    }
+
+    win() {
+      this.status = "win";
+      this.width = 140;
+      this.height = 220;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -10;
+      this.offset_y = -50;
+      this.animationRate = 5;
+    }
+
+    updateStatus() {
+      let w, a, d, s, space, f;
+      if (this.id === 0) {
+        w = this.pressedKeys.has("w");
+        a = this.pressedKeys.has("a");
+        d = this.pressedKeys.has("d");
+        s = this.pressedKeys.has("s");
+        f = this.pressedKeys.has("f");
+        space = this.pressedKeys.has(" ");
+      } else {
+        w = this.pressedKeys.has("arrowup");
+        a = this.pressedKeys.has("arrowleft");
+        s = this.pressedKeys.has("arrowdown");
+        f = this.pressedKeys.has("shift");
+        d = this.pressedKeys.has("arrowright");
+        space = this.pressedKeys.has("enter");
+      }
+
+      if (this.status === "idle") {
+        if (f) {
+          this.standDefense();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (w) {
+          this.jump();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        }
+      } else if (this.status === "forward") {
+        if (f) {
+          this.standDefense();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (w) {
+          this.jump();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "backward") {
+        if (f) {
+          this.standDefense();
+        } else if (space) {
+          this.normalAttack();
+        } else if (s) {
+          this.squat();
+        } else if (w) {
+          this.jump();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "jump") {
+        if (this.y === this.ctx.canvas.height - this.height - GROUND_HEIGHT) {
+          this.idle();
+        } else {
+          if (d) {
+            this.vx = 400;
+          } else if (a) {
+            this.vx = -400;
+          }
+        }
+      } else if (this.status === "jumpAttack") {
+        if (this.isAnimationOver()) {
+          this.status = "jump";
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 25 &&
+            this.frameCurrentCount <= 100
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "squat") {
+        if (!s) {
+          if (w) {
+            this.idle();
+          } else if (f) {
+            this.squatDefense();
+          } else if (d) {
+            if (this.direction === 1) this.forward();
+            else this.backward();
+          } else if (a) {
+            if (this.direction === 1) this.backward();
+            else this.forward();
+          } else if (space) {
+            this.normalAttack();
+          }
+        }
+        if (this.frameCurrentCount === 30) {
+          this.frameCurrentCount--;
+        }
+      } else if (this.status === "squatDefense") {
+        if (!f) {
+          this.squat();
+        }
+      } else if (this.status === "standDefense") {
+        if (!f) {
+          this.idle();
+        }
+      } else if (this.status === "normalAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else if (w && space) {
+          this.jumpAttack();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            (this.frameCurrentCount === 10 ||
+              this.frameCurrentCount === 40 ||
+              this.frameCurrentCount === 100 ||
+              this.frameCurrentCount === 140)
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount--;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "attacked") {
+        if (this.isAnimationOver()) {
+          if (this.hp <= 0) {
+            this.die();
+          } else {
+            this.idle();
+          }
+        }
+      } else if (this.status === "die") {
+        if (this.frameCurrentCount === 70) {
+          this.frameCurrentCount--;
+        }
+      } else if (this.status === "win") {
+        if (this.isAnimationOver()) {
+          this.idle();
+          this.root.endGame();
+        }
+      }
+    }
+  }
+
+  class ZhuGeliang extends Player {
+    constructor(root, info) {
+      super(root, info);
+
+      this.animationScale = 2.5;
+      this.status = "jumpAttack";
+      //存放角色的所有状态 gif的文件名必须与状态名相同
+      this.allStates = [];
+      this.initSkills();
+      this.initAnimations();
+    }
+    initSkills() {
+      this.allStates = [
+        "idle",
+        "forward",
+        "backward",
+        "jumpAttack",
+        "normalAttack",
+        "attacked",
+        "die",
+        "win",
+        "standDefense",
+        "fireAttack",
+        "thunderAttack",
+        "jumpAttack",
+        "swordUnity",
+      ];
+    }
+    initAnimations() {
+      let outer = this;
+      for (let i = 0; i < this.allStates.length; i++) {
+        let gif = GIF();
+        gif.load(
+          `player/zhuGeliang/${this.allStates[i]}.gif`
+        );
+        this.animations.set(this.allStates[i], {
+          gif: gif,
+          frameCnt: 0, //总图片数
+          loaded: false, //是否加载完成
+        });
+
+        gif.onload = function () {
+          let obj = outer.animations.get(outer.allStates[i]);
+          obj.frameCnt = gif.frames.length;
+          obj.loaded = true;
+        };
+      }
+    }
+
+    idle() {
+      this.status = "idle";
+      this.width = 130;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = 5;
+      this.animationRate = 6;
+    }
+
+    forward() {
+      this.status = "forward";
+      this.width = 130;
+      this.height = 200;
+
+      this.vx = this.direction * 400;
+      this.defense = 0;
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = 10;
+      this.animationRate = 5;
+    }
+
+    backward() {
+      this.status = "backward";
+      this.width = 130;
+      this.height = 200;
+      this.defense = 0;
+
+      this.vx = -this.direction * 400;
+
+      //动画相关
+      this.offset_x = -50;
+      this.offset_y = -10;
+      this.animationRate = 12;
+    }
+    jumpAttack() {
+      this.status = "jumpAttack";
+      this.attackCount = 1;
+      this.damage = 20;
+      this.attackArea = {
+        x1: 120,
+        y1: -40,
+        x2: 420,
+        y2: 150,
+      };
+      this.width = 180;
+      this.height = 200;
+      this.defense = 10;
+
+      this.vy = -2100;
+
+      //动画相关
+      this.offset_x = -100;
+      this.offset_y = -150;
+      this.frameCurrentCount = 0;
+      this.animationRate = 3.6;
+    }
+
+    normalAttack() {
+      this.status = "normalAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 160,
+        y1: 60,
+        x2: 430,
+        y2: 80,
+      };
+      this.damage = 5;
+      this.defense = 30;
+      this.width = 180;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = 0;
+      this.animationRate = 10;
+    }
+
+    fireAttack() {
+      this.status = "fireAttack";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: 250,
+        y1: 0,
+        x2: 740,
+        y2: 80,
+      };
+      this.damage = 30;
+      this.defense = 10;
+      this.width = 180;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = -50;
+      this.animationRate = 5;
+    }
+
+    thunderAttack() {
+      this.status = "thunderAttack";
+      this.attackCount = 3;
+      this.attackArea = {
+        x1: 100,
+        y1: -250,
+        x2: 360,
+        y2: 80,
+      };
+      this.damage = 10;
+      this.defense = 100;
+      this.width = 180;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -350;
+      this.offset_y = -250;
+      this.animationRate = 4;
+    }
+
+    swordUnity() {
+      this.status = "swordUnity";
+      this.attackCount = 1;
+      this.attackArea = {
+        x1: -200,
+        y1: -40,
+        x2: 400,
+        y2: 220,
+      };
+      this.damage = 10;
+      this.defense = 80;
+      this.width = 180;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -210;
+      this.offset_y = -50;
+      this.animationRate = 3;
+    }
+
+    attacked() {
+      if (this.hp <= 0) return;
+      this.status = "attacked";
+
+      this.hp -= Math.max(
+        this.root.players[1 - this.id].damage - this.defense,
+        0
+      );
+      this.$hpDiv.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        300
+      );
+      this.$hp.animate(
+        {
+          width: (this.$hp.parent().width() * this.hp) / 100,
+        },
+        600
+      );
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+      this.width = 130;
+      this.height = 200;
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -50;
+      this.offset_y = -50;
+      this.animationRate = 6;
+    }
+
+    die() {
+      this.status = "die";
+
+      let you = this.root.players[1 - this.id];
+      this.direction = you.direction;
+      this.width = 0;
+      this.height = 0;
+      this.vx = 0;
+      this.vy = 0;
+      this.attackArea = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0,
+      };
+      you.win();
+      //动画相关
+      this.frameCurrentCount = 10;
+      this.offset_x = 0;
+      this.offset_y = -200;
+      this.animationRate = 3;
+    }
+
+    standDefense() {
+      this.status = "standDefense";
+      this.defense = 20;
+      this.width = 180;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+
+      //动画相关
+      this.offset_x = -10;
+      this.offset_y = 0;
+      this.frameCurrentCount = 0;
+      this.animationRate = 8;
+    }
+
+    win() {
+      this.status = "win";
+      this.width = 130;
+      this.height = 200;
+
+      this.vx = 0;
+      this.vy = 0;
+      this.defense = 0;
+      this.attackArea = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      };
+
+      //动画相关
+      this.frameCurrentCount = 0;
+      this.offset_x = -70;
+      this.offset_y = -260;
+      this.animationRate = 5;
+    }
+
+    updateStatus() {
+      let w, a, d, s, space, f;
+      if (this.id === 0) {
+        w = this.pressedKeys.has("w");
+        a = this.pressedKeys.has("a");
+        d = this.pressedKeys.has("d");
+        s = this.pressedKeys.has("s");
+        f = this.pressedKeys.has("f");
+        space = this.pressedKeys.has(" ");
+      } else {
+        w = this.pressedKeys.has("arrowup");
+        a = this.pressedKeys.has("arrowleft");
+        s = this.pressedKeys.has("arrowdown");
+        f = this.pressedKeys.has("shift");
+        d = this.pressedKeys.has("arrowright");
+        space = this.pressedKeys.has("enter");
+      }
+
+      if (this.status === "idle") {
+        if (f) {
+          this.standDefense();
+        } else if (w) {
+          this.thunderAttack();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else if (s) {
+          this.swordUnity();
+        } else if (space) {
+          this.normalAttack();
+        }
+      } else if (this.status === "forward") {
+        if (f) {
+          this.standDefense();
+        } else if (space) {
+          this.normalAttack();
+        } else if (w) {
+          this.thunderAttack();
+        } else if (s) {
+          this.swordUnity();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "backward") {
+        if (f) {
+          this.standDefense();
+        } else if (space) {
+          this.normalAttack();
+        } else if (w) {
+          this.thunderAttack();
+        } else if (s) {
+          this.swordUnity();
+        } else if (d) {
+          if (this.direction === 1) this.forward();
+          else this.backward();
+        } else if (a) {
+          if (this.direction === 1) this.backward();
+          else this.forward();
+        } else {
+          this.idle();
+        }
+      } else if (this.status === "jumpAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 10 &&
+            this.frameCurrentCount <= 30
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "standDefense") {
+        if (space) {
+          this.fireAttack();
+        } else if (!f) {
+          this.idle();
+        }
+      } else if (this.status === "normalAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else if (w && space) {
+          this.jumpAttack();
+        } else if (f && space) {
+          this.fireAttack();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 7 &&
+            this.frameCurrentCount <= 24
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "fireAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else {
+          if (
+            this.attackCount > 0 &&
+            this.isSuccessfuleAttack() &&
+            this.frameCurrentCount >= 46 &&
+            this.frameCurrentCount <= 80
+          ) {
+            let you = this.root.players[1 - this.id];
+            this.attackCount = 0;
+            if (you.defense < this.damage) {
+              you.attacked();
+            }
+          }
+        }
+      } else if (this.status === "thunderAttack") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        } else if (this.frameCurrentCount === 40) {
+          this.attackArea = {
+            x1: -270,
+            y1: -250,
+            x2: 0,
+            y2: 80,
+          };
+        } else if (this.frameCurrentCount === 110) {
+          this.attackArea = {
+            x1: -20,
+            y1: -250,
+            x2: 200,
+            y2: 80,
+          };
+        } else if (this.frameCurrentCount === 130) {
+          this.attackArea = {
+            x1: 110,
+            y1: -250,
+            x2: 350,
+            y2: 80,
+          };
+        }
+        if (this.attackCount > 0 && this.isSuccessfuleAttack()) {
+          let you = this.root.players[1 - this.id];
+          this.attackCount--;
+          if (you.defense < this.damage) {
+            you.attacked();
+          }
+        }
+      } else if (this.status === "swordUnity") {
+        if (this.isAnimationOver()) {
+          this.idle();
+        }
+        d;
+        if (this.isAnimationOver()) {
+          this.idle();
+        }
+        if (
+          this.attackCount > 0 &&
+          this.isSuccessfuleAttack() &&
+          this.frameCurrentCount >= 5 &&
+          this.frameCurrentCount <= 24
+        ) {
+          let you = this.root.players[1 - this.id];
+          this.attackCount = 0;
+          if (you.defense < this.damage) {
+            you.attacked();
+          }
+        }
+      } else if (this.status === "attacked") {
+        if (this.isAnimationOver()) {
+          if (this.hp <= 0) {
+            this.die();
+          } else {
+            this.idle();
+          }
+        }
+      } else if (this.status === "die") {
+        this.x += this.direction * 10;
+      } else if (this.status === "win") {
+        if (this.isAnimationOver()) {
+          this.idle();
+          this.root.endGame();
+        }
+      }
+    }
+  }
+
+  let kof = new KOF("kof");
+</script>
